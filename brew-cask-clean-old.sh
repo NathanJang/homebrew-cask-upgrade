@@ -8,20 +8,24 @@ EOF
     exit
 fi
 
+caskBasePath="/opt/homebrew-cask/Caskroom"
+
 function clean-cask {
-    cask="$1"
-    caskDirectory="/opt/homebrew-cask/Caskroom/$cask"
-    versionsToRemove="$(ls -r $caskDirectory | sed 1,1d)"
-    for versionToRemove in $versionsToRemove ; do
-        echo "Removing $cask $versionToRemove..."
-        rm -rf "$caskDirectory/$versionToRemove"
-    done
+    local cask="$1"
+    local caskDirectory="$caskBasePath/$cask"
+    local versionsToRemove="$(ls -r $caskDirectory | sed 1,1d)"
+    if [[ -n $versionsToRemove ]]; then
+        while read versionToRemove ; do
+            echo "Removing $cask $versionToRemove..."
+            rm -rf "$caskDirectory/$versionToRemove"
+        done <<< "$versionsToRemove"
+    fi
 }
 
 if [[ $# -eq 0 ]]; then
-    for cask in "$(brew cask list)"; do
+    while read cask; do
         clean-cask "$cask"
-    done
+    done <<< "$(brew cask list)"
 else
     clean-cask "$1"
 fi
